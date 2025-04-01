@@ -1,4 +1,4 @@
-![_- visual selection (2)](https://github.com/user-attachments/assets/4bef6abd-5d71-4093-bab5-e72e144c2c49)# AI Outdoor Adventure Planner
+# AI Outdoor Adventure Planner
 
 ---
 
