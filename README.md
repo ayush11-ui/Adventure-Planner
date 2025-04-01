@@ -56,9 +56,10 @@ You can host the project on platforms like **GitHub Pages, Netlify, or Vercel** 
 ---
 
 ## 📸 Preview
-![App Screenshot](assets/images/screenshot.png)
 
----
+
+---![Screenshot 2025-04-01 112301](https://github.com/user-attachments/assets/22a36576-1a01-4d2f-9a6e-ea3b5ab12fd2)
+
 
 ## 🤝 Contributing
 🚀 Feel free to fork the repository, submit a pull request, or report issues. Contributions are always welcome.
