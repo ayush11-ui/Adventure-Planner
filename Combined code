@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Outdoor Adventure Planner</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Font Awesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Glassmorphism Styling */
+        .glass {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .glass:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+        }
+        body {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Arial', sans-serif;
+        }
+        /* Custom styling for the activity and difficulty dropdowns */
+        #activityType, #difficulty {
+            background-color: black !important;
+            color: white !important;
+        }
+        #activityType option, #difficulty option {
+            background-color: black !important;
+            color: white !important;
+        }
+        /* Map container */
+        #map {
+            height: 200px;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        /* Chat message animation */
+        .chat-message {
+            opacity: 0;
+            transform: translateY(10px);
+            animation: fadeInUp 0.5s ease forwards;
+        }
+        @keyframes fadeInUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        /* Button hover effect */
+        .btn-hover {
+            transition: background-color 0.3s ease, transform 0.3s ease;
+        }
+        .btn-hover:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <div class="w-full max-w-lg p-8 glass rounded-xl">
+        <h1 class="text-3xl font-bold text-white mb-2 text-center flex items-center justify-center">
+            <i class="fas fa-mountain mr-2"></i> AI Outdoor Adventure Planner
+        </h1>
+        <p class="text-gray-300 text-center mb-6">Suggests hikes, biking trails, and outdoor activities</p>
+
+        <!-- Map Container -->
+        <div id="map" class="glass"></div>
+
+        <!-- Chat Container -->
+        <div id="chatContainer" class="h-80 overflow-y-auto p-4 bg-gray-900 bg-opacity-40 rounded-lg mb-6">
+            <div id="chatMessages" class="space-y-3"></div>
+        </div>
+
+        <!-- Input and Controls -->
+        <div class="flex flex-col space-y-4 w-full">
+            <!-- Filters -->
+            <div class="flex space-x-3 w-full">
+                <select id="activityType" class="p-3 rounded-lg glass text-white focus:outline-none w-1/4">
+                    <option value="hiking">Hiking</option>
+                    <option value="biking">Biking</option>
+                    <option value="camping">Camping</option>
+                    <option value="kayaking">Kayaking</option>
+                </select>
+                <select id="difficulty" class="p-3 rounded-lg glass text-white focus:outline-none w-1/4">
+                    <option value="easy">Easy</option>
+                    <option value="moderate">Moderate</option>
+                    <option value="hard">Hard</option>
+                </select>
+                <input id="location" type="text" placeholder="Enter your location" class="p-3 rounded-lg glass text-white focus:outline-none w-2/4">
+            </div>
+
+            <!-- Chat Input -->
+            <div class="flex items-center space-x-3 w-full">
+                <input id="userInput" type="text" placeholder="Ask for suggestions..." class="p-3 rounded-lg glass text-white focus:outline-none w-3/4">
+                <button id="sendBtn" class="p-3 w-12 h-12 flex items-center justify-center bg-blue-600 text-white rounded-lg btn-hover">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+                <button id="voiceBtn" class="p-3 w-12 h-12 flex items-center justify-center bg-green-600 text-white rounded-lg btn-hover">
+                    <i class="fas fa-microphone"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // API Keys (Replace with your own keys)
+        const OPENWEATHER_API_KEY = 'your_openweather_api_key'; // Replace with your actual OpenWeather API key
+        const OUTDOORACTIVE_API_KEY = 'your_outdooractive_api_key';
+        const OPENCAGE_API_KEY = 'your_opencage_api_key';
+
+        // Leaflet Map Initialization with OpenStreetMap Tiles
+        const map = L.map('map').setView([37.7749, -122.4194], 10); // Default: San Francisco
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Chatbot Logic
+        const chatMessages = document.getElementById('chatMessages');
+        const userInput = document.getElementById('userInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const voiceBtn = document.getElementById('voiceBtn');
+        const activityType = document.getElementById('activityType');
+        const difficulty = document.getElementById('difficulty');
+        const locationInput = document.getElementById('location');
+
+        // Sample data (fallback if Outdooractive API fails)
+        const activities = {
+            hiking: [
+                { name: "Mount Trail", location: "Colorado", difficulty: "moderate", distance: "5 miles" },
+                { name: "Forest Loop", location: "Oregon", difficulty: "easy", distance: "3 miles" }
+            ],
+            biking: [
+                { name: "River Path", location: "California", difficulty: "easy", distance: "10 miles" },
+                { name: "Mountain Ridge", location: "Utah", difficulty: "hard", distance: "15 miles" }
+            ],
+            camping: [
+                { name: "Lake Campground", location: "Montana", difficulty: "easy", distance: "N/A" }
+            ],
+            kayaking: [
+                { name: "Crystal River", location: "Florida", difficulty: "moderate", distance: "8 miles" }
+            ]
+        };
+
+        // Fetch Weather Data from OpenWeatherMap
+        async function fetchWeather(location) {
+            try {
+                const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${location}&appid=${OPENWEATHER_API_KEY}&units=imperial`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}, Message: ${await response.text()}`);
+                }
+                const data = await response.json();
+                if (data.cod !== 200) throw new Error(data.message);
+                return { temp: data.main.temp, condition: data.weather[0].description };
+            } catch (error) {
+                console.error('Weather API Error:', error);
+                return { temp: 'N/A', condition: `Unable to fetch weather: ${error.message}` };
+            }
+        }
+
+        // Fetch Trails from Outdooractive (Simplified Example)
+        async function fetchTrails(location, activity, difficulty) {
+            try {
+                const response = await fetch(`https://api.outdooractive.com/v1/tours?location=${location}&activity=${activity}&difficulty=${difficulty}&key=${OUTDOORACTIVE_API_KEY}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                const data = await response.json();
+                return data.tours || [];
+            } catch (error) {
+                console.error('Outdooractive API Error:', error);
+                // Fallback to sample data if API fails
+                return activities[activity].filter(trail => 
+                    trail.difficulty === difficulty && 
+                    (location === "unknown location" || trail.location.toLowerCase().includes(location.toLowerCase()))
+                );
+            }
+        }
+
+        // Geocode location using OpenCage
+        async function geocodeLocation(location) {
+            try {
+                const response = await fetch(`https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(location)}&key=${OPENCAGE_API_KEY}`);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                const data = await response.json();
+                if (data.results.length === 0) throw new Error('Location not found');
+                const { lat, lng } = data.results[0].geometry;
+                return { lng, lat };
+            } catch (error) {
+                console.error('Geocoding Error:', error);
+                throw new Error('Geocoding error: ' + error.message);
+            }
+        }
+
+        // Add message to chat
+        function addMessage(message, sender) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `p-3 rounded-lg chat-message ${sender === 'user' ? 'bg-blue-600 text-white ml-auto' : 'bg-gray-800 text-white mr-auto'} max-w-xs`;
+            messageDiv.textContent = message;
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Suggest activities
+        async function suggestActivities() {
+            const userLocation = locationInput.value || "unknown location";
+            const selectedActivity = activityType.value;
+            const selectedDifficulty = difficulty.value;
+            const userMessage = userInput.value || `Suggest ${selectedActivity} trails in ${userLocation}`;
+
+            // Display user message
+            addMessage(userMessage, 'user');
+            userInput.value = '';
+
+            try {
+                // Geocode the location and update map
+                const { lng, lat } = await geocodeLocation(userLocation);
+                map.setView([lat, lng], 10);
+                L.marker([lat, lng]).addTo(map);
+
+                // Fetch and display weather
+                const weather = await fetchWeather(userLocation);
+                addMessage(`Weather in ${userLocation}: ${weather.temp}°F, ${weather.condition}`, 'bot');
+
+                // Fetch and display trails
+                const trails = await fetchTrails(userLocation, selectedActivity, selectedDifficulty);
+                if (trails.length > 0) {
+                    trails.forEach(trail => {
+                        addMessage(`${trail.name} (${trail.location}) - ${trail.difficulty}, ${trail.distance || 'N/A'}`, 'bot');
+                    });
+                } else {
+                    addMessage(`Sorry, I couldn't find any ${selectedActivity} trails matching your criteria in ${userLocation}. Try another location or activity!`, 'bot');
+                }
+            } catch (error) {
+                addMessage(`Error: ${error.message}`, 'bot');
+            }
+        }
+
+        // Handle send button
+        sendBtn.addEventListener('click', suggestActivities);
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') suggestActivities();
+        });
+
+        // Voice Input
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (SpeechRecognition) {
+            const recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.lang = 'en-US';
+
+            voiceBtn.addEventListener('click', () => {
+                recognition.start();
+                voiceBtn.classList.add('bg-red-600');
+                voiceBtn.innerHTML = '<i class="fas fa-microphone"></i> Recording...';
+            });
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                userInput.value = transcript;
+                suggestActivities();
+            };
+
+            recognition.onend = () => {
+                voiceBtn.classList.remove('bg-red-600');
+                voiceBtn.classList.add('bg-green-600');
+                voiceBtn.innerHTML = '<i class="fas fa-microphone"></i>';
+            };
+
+            recognition.onerror = (event) => {
+                addMessage('Error with voice input: ' + event.error, 'bot');
+            };
+        } else {
+            voiceBtn.disabled = true;
+            voiceBtn.classList.add('opacity-50');
+            addMessage('Voice input is not supported in your browser.', 'bot');
+        }
+
+        // Initial message
+        addMessage('Hello! I can suggest hikes, biking trails, and more. Select your preferences and ask away!', 'bot');
+    </script>
+</body>
+</html>
