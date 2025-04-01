@@ -1,4 +1,4 @@
-# AI Outdoor Adventure Planner
+![_- visual selection (2)](https://github.com/user-attachments/assets/4bef6abd-5d71-4093-bab5-e72e144c2c49)# AI Outdoor Adventure Planner
 
 ---
 
@@ -14,7 +14,8 @@
 ✅ Voice input support for hands-free interaction  
 ✅ Sleek glassmorphism UI design  
 
----
+---![_- visual selection (3)](https://github.com/user-attachments/assets/4f26a506-08f8-4f4a-907c-bbadfa652fa9)
+
 
 ## 🏗️ Project Structure
 📂 `ai-outdoor-adventure-planner/` - Project Root  
