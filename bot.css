@@ -1,44 +1,25 @@
-/* Glassmorphism Styling */
-.glass {
-    background: rgba(255, 255, 255, 0.05);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-.glass:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
-}
-
+/* Base styling */
 body {
-    background: linear-gradient(135deg, #1a1a2e, #16213e);
-    min-height: 100vh;
+    background: linear-gradient(135deg, #e3edf7, #c8d6e5);
+    font-family: Arial, sans-serif;
     display: flex;
     justify-content: center;
     align-items: center;
-    font-family: 'Arial', sans-serif;
+    height: 100vh;
 }
 
-/* Dropdowns */
-#activityType, #difficulty {
-    background-color: black !important;
-    color: white !important;
-}
-#activityType option, #difficulty option {
-    background-color: black !important;
-    color: white !important;
-}
-
-/* Map container */
-#map {
-    height: 200px;
-    border-radius: 8px;
-    margin-bottom: 1rem;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+/* Glass effect for main container */
+.glass {
+    background: rgba(255, 255, 255, 0.2);
+    -webkit-backdrop-filter: blur(15px);
+    backdrop-filter: blur(15px);
+    border-radius: 15px;
+    padding: 25px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
-/* Chat message animation */
+/* Chat message animations */
 .chat-message {
     opacity: 0;
     transform: translateY(10px);
@@ -49,4 +30,35 @@ body {
         opacity: 1;
         transform: translateY(0);
     }
+}
+
+/* Button hover effects */
+button {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 20px rgba(0, 0, 128, 0.5);
+}
+
+/* Loading spinner */
+.loading {
+    display: none;
+    text-align: center;
+    margin: 10px 0;
+}
+.loading i {
+    animation: spin 1s linear infinite;
+}
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Map container */
+#map {
+    height: 200px;
+    width: 100%;
+    margin: 10px 0;
+    border-radius: 8px;
 }
