@@ -72,5 +72,5 @@ This project is released under the **MIT License**.
 ---
 
 ## 📬 Contact
-📧 For inquiries or collaborations, reach out at **ash43890@gmail.com **.
+📧 For inquiries or collaborations, reach out at **ash43890@gmail.com ** or phone no. **8789128904**.
 
