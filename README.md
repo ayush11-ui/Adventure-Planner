@@ -3,7 +3,7 @@
 ---
 
 ## 🌍 About
-**AI Outdoor Adventure Planner** is a web-based tool that helps users discover outdoor activities like hiking, biking, camping, and kayaking based on their location and difficulty preferences. With an interactive chat system and map, it provides a seamless adventure planning experience.
+**AI Outdoor Adventure Planner helps users find suitable outdoor experiences near them by analyzing location and difficulty preferences. Through an AI chat interface and interactive map, users can explore, compare, and plan activities like hiking, biking, camping, and kayaking in one place.
 
 ---
 
